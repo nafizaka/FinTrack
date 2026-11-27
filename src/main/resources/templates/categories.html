@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Kategori | FinTrack</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <style>
+        body {
+            background: #f5f7f6;
+            font-family: Arial, sans-serif;
+            color: #26352e;
+        }
+
+        .navbar {
+            background: white;
+            padding: 16px 0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+
+        .brand {
+            color: #15966b;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .main-content {
+            padding: 35px 0;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.035);
+        }
+
+        .income {
+            color: #15966b;
+            font-weight: 600;
+        }
+
+        .expense {
+            color: #dc5555;
+            font-weight: 600;
+        }
+
+        .table th {
+            color: #7b8982;
+            font-size: 13px;
+        }
+
+        .table td {
+            vertical-align: middle;
+            padding-top: 15px;
+            padding-bottom: 15px;
+        }
+
+        .btn-success {
+            background: #15966b;
+            border-color: #15966b;
+        }
+
+        .btn-success:hover {
+            background: #087c58;
+            border-color: #087c58;
+        }
+
+        @media (max-width: 576px) {
+            .content-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <div class="container d-flex justify-content-between align-items-center">
+
+        <a class="brand text-decoration-none" th:href="@{/dashboard}">
+            FinTrack
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+            <a th:href="@{/dashboard}"
+               class="btn btn-outline-success btn-sm">
+                Dashboard
+            </a>
+
+            <form th:action="@{/logout}" method="post">
+                <button type="submit"
+                        class="btn btn-outline-danger btn-sm">
+                    Logout
+                </button>
+            </form>
+        </div>
+
+    </div>
+</nav>
+
+<main class="container main-content">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold">Kategori</h2>
+            <p class="text-muted mb-0">
+                Kelola kategori pemasukan dan pengeluaranmu.
+            </p>
+        </div>
+
+        <a th:href="@{/categories/new}"
+           class="btn btn-success">
+            + Tambah Kategori
+        </a>
+
+    </div>
+
+    <!-- Success Message -->
+    <div th:if="${successMessage}"
+         class="alert alert-success alert-dismissible fade show">
+        <span th:text="${successMessage}"></span>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+
+    <!-- Error Message -->
+    <div th:if="${errorMessage}"
+         class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${errorMessage}"></span>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+
+    <div class="content-card">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>No.</th>
+                        <th>Nama Kategori</th>
+                        <th>Jenis</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr th:each="category, iterStat : ${categories}">
+
+                        <td th:text="${iterStat.count}">1</td>
+
+                        <td class="fw-semibold"
+                            th:text="${category.categoryName}">
+                            Makanan
+                        </td>
+
+                        <td>
+                            <span th:if="${category.type.name() == 'INCOME'}"
+                                  class="income">
+                                Pemasukan
+                            </span>
+
+                            <span th:if="${category.type.name() == 'EXPENSE'}"
+                                  class="expense">
+                                Pengeluaran
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+
+                                <a th:href="@{/categories/edit/{id}(
+                                    id=${category.categoryId})}"
+                                   class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
+
+                                <form th:action="@{/categories/delete/{id}(
+                                    id=${category.categoryId})}"
+                                      method="post"
+                                      onsubmit="return confirm(
+                                        'Yakin ingin menghapus kategori ini?')">
+
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm">
+                                        Hapus
+                                    </button>
+
+                                </form>
+
+                            </div>
+                        </td>
+
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(categories)}">
+
+                        <td colspan="4" class="text-center py-5">
+
+                            <h6 class="text-muted">
+                                Belum ada kategori
+                            </h6>
+
+                            <p class="text-muted small">
+                                Tambahkan kategori untuk mulai mengelola transaksi.
+                            </p>
+
+                            <a th:href="@{/categories/new}"
+                               class="btn btn-success btn-sm">
+                                Tambah Kategori Pertama
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+</html>

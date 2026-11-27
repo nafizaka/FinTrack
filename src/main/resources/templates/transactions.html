@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaksi - FinTrack</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <style>
+        body {
+            background: #f5f7fb;
+            font-family: Arial, sans-serif;
+        }
+        .navbar {
+            background: #172554;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: white;
+        }
+        .main-content {
+            padding: 35px 0;
+        }
+        .content-card {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 3px 15px rgba(0,0,0,.04);
+        }
+        .income {
+            color: #16a34a;
+            font-weight: 600;
+        }
+        .expense {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: #2563eb;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard">FinTrack</a>
+
+        <div class="d-flex align-items-center gap-3">
+            <a href="/dashboard" class="text-white text-decoration-none">
+                Dashboard
+            </a>
+
+            <form th:action="@{/logout}" method="post">
+                <button class="btn btn-outline-light btn-sm" type="submit">
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container main-content">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">Transaksi</h2>
+            <p class="text-muted mb-0">
+                Kelola seluruh pemasukan dan pengeluaranmu.
+            </p>
+        </div>
+
+        <a href="/transactions/new" class="btn btn-primary">
+            + Tambah Transaksi
+        </a>
+    </div>
+
+    <div th:if="${successMessage}"
+         class="alert alert-success alert-dismissible fade show">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Filter Transaksi -->
+<div class="content-card mb-4">
+
+    <h5 class="fw-bold mb-3">Filter Transaksi</h5>
+
+    <div th:if="${errorMessage}" class="alert alert-danger">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <form th:action="@{/transactions}" method="get">
+
+        <div class="row g-3">
+
+            <!-- Filter Jenis -->
+            <div class="col-md-3">
+                <label class="form-label">Jenis Transaksi</label>
+
+                <select name="type" class="form-select">
+                    <option value="">Semua Jenis</option>
+
+                    <option value="INCOME"
+                            th:selected="${filterType != null and filterType.name() == 'INCOME'}">
+                        Pemasukan
+                    </option>
+
+                    <option value="EXPENSE"
+                            th:selected="${filterType != null and filterType.name() == 'EXPENSE'}">
+                        Pengeluaran
+                    </option>
+                </select>
+            </div>
+
+            <!-- Filter Kategori -->
+            <div class="col-md-3">
+                <label class="form-label">Kategori</label>
+
+                <select name="categoryId" class="form-select">
+                    <option value="">Semua Kategori</option>
+
+                    <option th:each="category : ${categories}"
+                            th:value="${category.categoryId}"
+                            th:text="${category.categoryName}"
+                            th:selected="${filterCategoryId != null and filterCategoryId == category.categoryId}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Tanggal Mulai -->
+            <div class="col-md-3">
+                <label class="form-label">Tanggal Mulai</label>
+
+                <input type="date"
+                       name="startDate"
+                       class="form-control"
+                       th:value="${filterStartDate}">
+            </div>
+
+            <!-- Tanggal Akhir -->
+            <div class="col-md-3">
+                <label class="form-label">Tanggal Akhir</label>
+
+                <input type="date"
+                       name="endDate"
+                       class="form-control"
+                       th:value="${filterEndDate}">
+            </div>
+
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+
+            <button type="submit" class="btn btn-primary">
+                Terapkan Filter
+            </button>
+
+            <a href="/transactions" class="btn btn-outline-secondary">
+                Reset
+            </a>
+
+        </div>
+
+    </form>
+</div>
+
+    <div class="content-card">
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>No.</th>
+                        <th>Tanggal</th>
+                        <th>Deskripsi</th>
+                        <th>Kategori</th>
+                        <th>Jenis</th>
+                        <th>Jumlah</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr th:each="transaction, iterStat : ${transactions}">
+                        <td th:text="${iterStat.count}"></td>
+
+                        <td th:text="${#temporals.format(
+                            transaction.transactionDate, 'dd MMM yyyy')}">
+                        </td>
+
+                        <td>
+                            <span th:text="${transaction.description != null
+                                and !transaction.description.isEmpty()
+                                ? transaction.description : '-'}">
+                            </span>
+                        </td>
+
+                        <td th:text="${transaction.category.categoryName}">
+                        </td>
+
+                        <td>
+                            <span th:if="${transaction.type.name() == 'INCOME'}"
+                                  class="badge bg-success">
+                                Pemasukan
+                            </span>
+
+                            <span th:if="${transaction.type.name() == 'EXPENSE'}"
+                                  class="badge bg-danger">
+                                Pengeluaran
+                            </span>
+                        </td>
+
+                        <td>
+                            <span th:if="${transaction.type.name() == 'INCOME'}"
+                                  class="income"
+                                  th:text="'Rp ' + ${#numbers.formatDecimal(
+                                      transaction.amount, 0, 'POINT', 0, 'COMMA')}">
+                            </span>
+
+                            <span th:if="${transaction.type.name() == 'EXPENSE'}"
+                                  class="expense"
+                                  th:text="'Rp ' + ${#numbers.formatDecimal(
+                                      transaction.amount, 0, 'POINT', 0, 'COMMA')}">
+                            </span>
+                        </td>
+
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+
+                                <a th:href="@{/transactions/edit/{id}(
+                                    id=${transaction.transactionId})}"
+                                   class="btn btn-sm btn-warning">
+                                    Edit
+                                </a>
+
+                                <form th:action="@{/transactions/delete/{id}(
+                                    id=${transaction.transactionId})}"
+                                      method="post"
+                                      onsubmit="return confirm(
+                                        'Yakin ingin menghapus transaksi ini?')">
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-danger">
+                                        Hapus
+                                    </button>
+                                </form>
+
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(transactions)}">
+                        <td colspan="7" class="text-center py-5">
+                            <h5 class="text-muted">
+                                 Tidak ada transaksi yang sesuai
+                            </h5>
+                            <p class="text-muted">
+                                Mulai catat pemasukan dan pengeluaranmu.
+                            </p>
+                            <a href="/transactions/new"
+                               class="btn btn-primary">
+                                Tambah Transaksi Pertama
+                            </a>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+</html>
